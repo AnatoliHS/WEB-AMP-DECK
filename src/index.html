@@ -19,13 +19,15 @@ permalink: "/"
         A 52-card diagnostic for finding what's actually breaking your growth. Run it at your own table.
       </p>
 
-      <form action="#" method="POST" class="deck-waitlist-form"
-        onsubmit="event.preventDefault(); alert('You have been added to the waitlist!'); this.reset();">
-        <input type="email" required placeholder="Enter your email" class="deck-waitlist-input" autocomplete="email" aria-label="Email address">
+      <form action="/api/waitlist" method="POST" class="deck-waitlist-form" id="waitlistForm">
+        <input type="email" name="email" required placeholder="Enter your email" class="deck-waitlist-input" autocomplete="email" aria-label="Email address">
+        <!-- Honeypot: hidden from people, bots fill it in -->
+        <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" style="position: absolute; left: -9999px;">
         <button type="submit" class="deck-waitlist-submit">Join the waitlist</button>
+        <div class="cf-turnstile" data-sitekey="{{ turnstile.siteKey }}" data-theme="light" data-size="flexible" data-action="waitlist"></div>
       </form>
 
-      <p class="deck-waitlist-note">We'll email you once when it ships. Nothing else.</p>
+      <p class="deck-waitlist-note" id="waitlistNote" aria-live="polite">We'll email you once when it ships. Nothing else.</p>
     </div>
   </div>
 
@@ -33,3 +35,50 @@ permalink: "/"
     <img src="/images/deck.avif" alt="The AMP Deck cards on table" class="deck-page-img">
   </div>
 </section>
+
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script>
+  // Waitlist form: submit to the Resend-backed function without leaving the page
+  (function () {
+    const form = document.getElementById('waitlistForm');
+    const note = document.getElementById('waitlistNote');
+    const button = form.querySelector('button[type="submit"]');
+
+    // Result of a no-JS form post comes back in the query string
+    const result = new URLSearchParams(location.search).get('waitlist');
+    if (result === 'joined') note.textContent = "You're on the list. We'll email you when it ships.";
+    if (result === 'error') note.textContent = 'Something went wrong. Please try again.';
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Turnstile adds this hidden field once the visitor passes the check
+      const token = form.querySelector('[name="cf-turnstile-response"]')?.value;
+      if (!token) {
+        note.textContent = 'Please complete the verification below the button.';
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = 'Joining...';
+
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ email: form.email.value, company: form.company.value, token })
+        });
+        const data = await res.json();
+        note.textContent = data.message;
+        if (data.ok) form.reset();
+      } catch (err) {
+        note.textContent = 'Something went wrong. Please try again.';
+      } finally {
+        // Tokens are single-use, so get a fresh one for the next attempt
+        if (window.turnstile) turnstile.reset(form.querySelector('.cf-turnstile'));
+        button.disabled = false;
+        button.textContent = 'Join the waitlist';
+      }
+    });
+  })();
+</script>

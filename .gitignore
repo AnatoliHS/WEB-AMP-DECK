@@ -133,3 +133,7 @@ _site
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Cloudflare local secrets (wrangler pages dev)
+.dev.vars
+.wrangler/
