@@ -429,6 +429,21 @@ h2 {
   line-height: 1.4;
 }
 
+/* Result of a waitlist submission */
+.deck-waitlist-note.is-success,
+.deck-waitlist-note.is-error {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.deck-waitlist-note.is-success {
+  color: #2E7D4F;
+}
+
+.deck-waitlist-note.is-error {
+  color: #B3261E;
+}
+
 /* Full-page split: form left, deck photo filling the right */
 .deck-page {
   display: grid;

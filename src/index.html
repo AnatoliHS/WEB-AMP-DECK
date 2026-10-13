@@ -44,10 +44,16 @@ permalink: "/"
     const note = document.getElementById('waitlistNote');
     const button = form.querySelector('button[type="submit"]');
 
+    function showNote(message, ok) {
+      note.textContent = message;
+      note.classList.toggle('is-success', ok);
+      note.classList.toggle('is-error', !ok);
+    }
+
     // Result of a no-JS form post comes back in the query string
     const result = new URLSearchParams(location.search).get('waitlist');
-    if (result === 'joined') note.textContent = "You're on the list. We'll email you when it ships.";
-    if (result === 'error') note.textContent = 'Something went wrong. Please try again.';
+    if (result === 'joined') showNote("You're on the list. We'll email you when it ships.", true);
+    if (result === 'error') showNote('Something went wrong. Please try again.', false);
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -55,7 +61,7 @@ permalink: "/"
       // Turnstile adds this hidden field once the visitor passes the check
       const token = form.querySelector('[name="cf-turnstile-response"]')?.value;
       if (!token) {
-        note.textContent = 'Please complete the verification below the button.';
+        showNote('Please complete the verification below the button.', false);
         return;
       }
 
@@ -69,10 +75,10 @@ permalink: "/"
           body: JSON.stringify({ email: form.email.value, company: form.company.value, token })
         });
         const data = await res.json();
-        note.textContent = data.message;
+        showNote(data.message, data.ok);
         if (data.ok) form.reset();
       } catch (err) {
-        note.textContent = 'Something went wrong. Please try again.';
+        showNote('Something went wrong. Please try again.', false);
       } finally {
         // Tokens are single-use, so get a fresh one for the next attempt
         if (window.turnstile) turnstile.reset(form.querySelector('.cf-turnstile'));
