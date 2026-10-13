@@ -1,10 +1,9 @@
 // Cloudflare Pages Function: POST /api/waitlist
-// Adds the submitted email to Resend Contacts and emails the team about the signup.
+// Emails the team about each waitlist signup (nothing is stored).
 //
 // Environment variables (Cloudflare Pages > Settings > Variables and Secrets):
-//   RESEND_API_KEY        (secret, required)  Resend API key with full access
+//   RESEND_API_KEY        (secret, required)  Resend API key with sending access
 //   TURNSTILE_SECRET_KEY  (secret, required)  Turnstile widget secret key
-//   RESEND_SEGMENT_ID     (optional)          Resend segment to add waitlist contacts to
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const GENERIC_ERROR = "Something went wrong. Please try again later.";
@@ -13,7 +12,7 @@ const GENERIC_ERROR = "Something went wrong. Please try again later.";
 const NOTIFY_FROM = "website@forms.theampdeck.com";
 const NOTIFY_TO = "theampdeck@ampvisualmedia.com";
 
-export async function onRequestPost({ request, env, waitUntil }) {
+export async function onRequestPost({ request, env }) {
   const wantsJson = (request.headers.get("Accept") || "").includes("application/json");
 
   // Works for both the fetch() call (JSON) and a plain form post without JS
@@ -56,28 +55,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     return respond(wantsJson, 403, "Verification failed. Please try again.");
   }
 
-  const contact = { email, unsubscribed: false };
-  if (env.RESEND_SEGMENT_ID) contact.segments = [{ id: env.RESEND_SEGMENT_ID }];
-
-  const res = await fetch("https://api.resend.com/contacts", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(contact),
-  });
-
-  if (!res.ok) {
-    const detail = await res.text();
-    // Someone signing up twice is not an error for them
-    if (/already exists/i.test(detail)) return respond(wantsJson, 200, "You're already on the list.");
-    console.error("Resend error", res.status, detail);
-    return respond(wantsJson, 502, GENERIC_ERROR);
-  }
-
-  // Notify the team in the background; a failed notification shouldn't fail the signup
-  waitUntil(notifyTeam(email, env.RESEND_API_KEY));
+  const sent = await notifyTeam(email, env.RESEND_API_KEY);
+  if (!sent) return respond(wantsJson, 502, GENERIC_ERROR);
 
   return respond(wantsJson, 200, "You're on the list.");
 }
@@ -94,13 +73,18 @@ async function notifyTeam(email, apiKey) {
         from: `The Amp Deck Website <${NOTIFY_FROM}>`,
         to: [NOTIFY_TO],
         reply_to: email,
-        subject: `New waitlist signup: ${email}`,
-        text: `${email} just joined the waitlist.\n\nReply to this email to contact them directly.`,
+        subject: "You have a new person who wants to join the waitlist",
+        text: `You have a new person who wants to join the waitlist.\n\nEmail: ${email}\n\nReply to this email to contact them directly.`,
       }),
     });
-    if (!res.ok) console.error("Resend notification error", res.status, await res.text());
+    if (!res.ok) {
+      console.error("Resend error", res.status, await res.text());
+      return false;
+    }
+    return true;
   } catch (err) {
-    console.error("Resend notification error", err);
+    console.error("Resend error", err);
+    return false;
   }
 }
 
