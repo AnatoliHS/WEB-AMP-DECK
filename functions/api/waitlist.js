@@ -1,5 +1,5 @@
 // Cloudflare Pages Function: POST /api/waitlist
-// Adds the submitted email to Resend Contacts.
+// Adds the submitted email to Resend Contacts and emails the team about the signup.
 //
 // Environment variables (Cloudflare Pages > Settings > Variables and Secrets):
 //   RESEND_API_KEY        (secret, required)  Resend API key with full access
@@ -9,7 +9,11 @@
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const GENERIC_ERROR = "Something went wrong. Please try again later.";
 
-export async function onRequestPost({ request, env }) {
+// Signup notifications (sender must be on the domain verified in Resend)
+const NOTIFY_FROM = "website@forms.theampdeck.com";
+const NOTIFY_TO = "theampdeck@ampvisualmedia.com";
+
+export async function onRequestPost({ request, env, waitUntil }) {
   const wantsJson = (request.headers.get("Accept") || "").includes("application/json");
 
   // Works for both the fetch() call (JSON) and a plain form post without JS
@@ -72,7 +76,32 @@ export async function onRequestPost({ request, env }) {
     return respond(wantsJson, 502, GENERIC_ERROR);
   }
 
+  // Notify the team in the background; a failed notification shouldn't fail the signup
+  waitUntil(notifyTeam(email, env.RESEND_API_KEY));
+
   return respond(wantsJson, 200, "You're on the list.");
+}
+
+async function notifyTeam(email, apiKey) {
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: `The Amp Deck Website <${NOTIFY_FROM}>`,
+        to: [NOTIFY_TO],
+        reply_to: email,
+        subject: `New waitlist signup: ${email}`,
+        text: `${email} just joined the waitlist.\n\nReply to this email to contact them directly.`,
+      }),
+    });
+    if (!res.ok) console.error("Resend notification error", res.status, await res.text());
+  } catch (err) {
+    console.error("Resend notification error", err);
+  }
 }
 
 async function verifyTurnstile(token, secret, ip) {
