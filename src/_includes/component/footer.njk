@@ -1,3 +1,5 @@
+{# Pages with their own contact section (front matter: hideFooterCta: true) skip this CTA #}
+{% if not hideFooterCta %}
 <section class="footer-cta" id="cta">
   <div class="container">
     <div class="footer-cta-eyebrow-row">
@@ -20,7 +22,7 @@
 
       <div class="footer-cta-btn-wrap">
         <a href="https://calendar.app.google/vc5qz2BpLdG4BEgq9" target="_blank" rel="noopener noreferrer" class="btn-footer-book">
-          <span class="btn-footer-text">Book a Deck Session ($750)</span>
+          <span class="btn-footer-text">Book a Deck Session</span>
           <span class="btn-footer-sep"></span>
           <span class="btn-footer-arrow">
             <svg width="16" height="14" viewBox="0 0 16 14" fill="currentColor" aria-hidden="true">
@@ -36,6 +38,7 @@
     </div>
   </div>
 </section>
+{% endif %}
 
 <footer class="site-footer">
   <div class="container">
@@ -66,7 +69,7 @@
           <span>1325 Highway 2, Unit 4</span>
           <span>Belleville, Ontario K8P 4T3</span>
           <a href="tel:+16138892770">(613) 889-2770</a>
-          <a href="mailto:hi@ampvisualmedia.com">hi@ampvisualmedia.com</a>
+          <a href="mailto:theampdeck@ampvisualmedia.com">theampdeck@ampvisualmedia.com</a>
         </address>
       </div>
 
@@ -77,7 +80,7 @@
           <ul class="footer-nav-list">
             <li><a href="https://www.linkedin.com/company/amptheagency" target="_blank" rel="noopener noreferrer">Linkedin</a></li>
             <li><a href="https://www.facebook.com/AMPVisualMedia" target="_blank" rel="noopener noreferrer">Facebook</a></li>
-            <li><a href="mailto:hi@ampvisualmedia.com">Email Us</a></li>
+            <li><a href="mailto:theampdeck@ampvisualmedia.com">Email Us</a></li>
           </ul>
           <ul class="footer-nav-list">
             <li><a href="https://www.instagram.com/ampvisualmedia/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
@@ -92,6 +95,10 @@
       <a href="https://www.bbb.org" target="_blank" rel="noopener noreferrer" aria-label="BBB Accredited Business" class="footer-bbb-badge">
         <img src="/images/bbb-seal.png" alt="AMP Visual Media BBB Business Review" class="footer-bbb-image">
       </a>
+    </div>
+
+    <div class="footer-legal-row">
+      <a href="/privacy-policy/">Privacy Policy</a>
     </div>
   </div>
 </footer>

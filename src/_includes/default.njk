@@ -2,8 +2,8 @@
 <html lang="en">
   {% include "component/head.njk" %}
   <body>
-    {# Navbar hidden for now #}
-    {# {% include "component/navbar.njk" %} #}
+    {% include "component/page-transition.njk" %}
+    {% include "component/navbar.njk" %}
 
     <main id="main-content">
       {{ content | safe }}
