@@ -1,24 +1,85 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ title | default("AMP | Digital Marketing Agency - Canada") }}</title>
-  <meta name="description" content="{{ description | default("As a strategy‑driven creative studio, AMP helps bold brands clarify their voice, design sites that convert and amplify growth with campaigns that compound.") }}">
-  
+  {%- set seoTitle = title | default(site.defaultTitle) -%}
+  {%- set seoDescription = description | default(site.defaultDescription) -%}
+  {%- set canonicalUrl = site.url + page.url -%}
+  {%- set seoImage = site.url + (ogImage | default(site.ogImage)) %}
+  <title>{{ seoTitle }}</title>
+  <meta name="description" content="{{ seoDescription }}">
+  {# Front matter `noindex: true` keeps a page out of search results (used by the 404 page) #}
+  {% if noindex %}
+  <meta name="robots" content="noindex, follow">
+  {% else %}
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="{{ canonicalUrl }}">
+  {% endif %}
+  <meta name="theme-color" content="#140F11">
+
   <!-- Open Graph -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="{{ title | default("AMP | Digital Marketing Agency - Canada") }}">
-  <meta property="og:description" content="{{ description | default("As a strategy‑driven creative studio, AMP helps bold brands clarify their voice, design sites that convert and amplify growth with campaigns that compound.") }}">
-  <meta property="og:image" content="/images/og-image.png">
-  
+  <meta property="og:site_name" content="{{ site.name }}">
+  <meta property="og:locale" content="{{ site.locale }}">
+  <meta property="og:title" content="{{ seoTitle }}">
+  <meta property="og:description" content="{{ seoDescription }}">
+  {% if not noindex %}<meta property="og:url" content="{{ canonicalUrl }}">{% endif %}
+  <meta property="og:image" content="{{ seoImage }}">
+  <meta property="og:image:width" content="{{ site.ogImageWidth }}">
+  <meta property="og:image:height" content="{{ site.ogImageHeight }}">
+  <meta property="og:image:alt" content="{{ site.ogImageAlt }}">
+
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{{ title | default("AMP | Digital Marketing Agency - Canada") }}">
-  <meta name="twitter:description" content="{{ description | default("As a strategy‑driven creative studio, AMP helps bold brands clarify their voice, design sites that convert and amplify growth with campaigns that compound.") }}">
-  <meta name="twitter:image" content="/images/og-image.png">
+  <meta name="twitter:title" content="{{ seoTitle }}">
+  <meta name="twitter:description" content="{{ seoDescription }}">
+  <meta name="twitter:image" content="{{ seoImage }}">
+  <meta name="twitter:image:alt" content="{{ site.ogImageAlt }}">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="/images/amp-logo.png">
-  <link rel="apple-touch-icon" href="/images/amp-logo.png">
+  <link rel="icon" type="image/png" sizes="256x256" href="/images/amp-logo-256.png">
+  <link rel="apple-touch-icon" href="/images/amp-logo-256.png">
+
+  {% if page.url == "/" %}
+  <!-- Hero background is the largest element on the home page: start fetching it early -->
+  <link rel="preload" as="image" href="/images/city-night.webp" type="image/webp" fetchpriority="high">
+
+  <!-- Structured data: business + website (helps Google show name, logo, address, socials) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "ProfessionalService",
+        "@id": "{{ site.url }}/#organization",
+        "name": "{{ site.organization }}",
+        "url": "{{ site.url }}/",
+        "logo": "{{ site.url }}/images/amp-logo-256.png",
+        "image": "{{ seoImage }}",
+        "telephone": "{{ site.telephone }}",
+        "email": "{{ site.email }}",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "{{ site.address.street }}",
+          "addressLocality": "{{ site.address.city }}",
+          "addressRegion": "{{ site.address.region }}",
+          "postalCode": "{{ site.address.postalCode }}",
+          "addressCountry": "{{ site.address.country }}"
+        },
+        "areaServed": "CA",
+        "sameAs": {{ site.sameAs | dump | safe }}
+      },
+      {
+        "@type": "WebSite",
+        "@id": "{{ site.url }}/#website",
+        "name": "{{ site.name }}",
+        "url": "{{ site.url }}/",
+        "inLanguage": "en-CA",
+        "publisher": { "@id": "{{ site.url }}/#organization" }
+      }
+    ]
+  }
+  </script>
+  {% endif %}
 
   <!-- Fonts: Geist, Inter & Red Hat Mono (Exact match to ampvisualmedia.com) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
