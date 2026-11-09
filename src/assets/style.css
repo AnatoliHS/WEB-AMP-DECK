@@ -323,7 +323,7 @@ h3 {
   }
 }
 
-/* Narrow phones: drop the icons so "Get the Deck $95" clears the center logo */
+/* Narrow phones: drop the icons so "Get the Deck $97" clears the center logo */
 @media (max-width: 400px) {
   .dock-wing-left,
   .dock-wing-right {
@@ -2787,7 +2787,9 @@ html.is-intro .page-transition {
 .footer-legal-row {
   margin-top: 24px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  gap: 8px 24px;
 }
 
 .footer-legal-row a {

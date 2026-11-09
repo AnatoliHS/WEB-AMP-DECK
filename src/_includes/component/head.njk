@@ -100,11 +100,13 @@
         var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
         if (
           /^\/(index\.html)?$/.test(location.pathname) &&
+          !sessionStorage.getItem('amp-fan-played') &&
           !(nav && nav.type === 'back_forward') &&
           !matchMedia('(max-width: 900px), (hover: none) and (pointer: coarse), (prefers-reduced-motion: reduce)').matches
         ) {
-          // Direct load or reload of the home page (desktop): cover the page for the card-fan intro
+          // First home page load of the session (desktop): cover the page for the card-fan intro
           root.classList.add('is-intro');
+          sessionStorage.setItem('amp-fan-played', '1');
         }
       }
     } catch (e) {}

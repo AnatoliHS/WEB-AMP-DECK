@@ -560,6 +560,7 @@ hideFooterCta: true
       <form action="/api/contact" method="POST" class="deck-waitlist-form" id="contactForm">
         <input type="text" name="name" required maxlength="200" placeholder="Your name" class="deck-waitlist-input" autocomplete="name" aria-label="Your name">
         <input type="email" name="email" required maxlength="254" placeholder="Your email" class="deck-waitlist-input" autocomplete="email" aria-label="Your email">
+        <input type="tel" name="phone" required maxlength="30" placeholder="Phone number" class="deck-waitlist-input" autocomplete="tel" aria-label="Phone number">
         <input type="text" name="business" required maxlength="200" placeholder="Business name" class="deck-waitlist-input" autocomplete="organization" aria-label="Business name">
         <!-- Honeypot: hidden from people, bots fill it in -->
         <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position: absolute; left: -9999px;">
@@ -615,6 +616,7 @@ hideFooterCta: true
           body: JSON.stringify({
             name: form.elements.name.value,
             email: form.elements.email.value,
+            phone: form.elements.phone.value,
             business: form.elements.business.value,
             website: form.elements.website.value,
             token

@@ -20,6 +20,7 @@ export async function onRequestPost({ request, env }) {
   // Works for both the fetch() call (JSON) and a plain form post without JS
   let name = "";
   let email = "";
+  let phone = "";
   let business = "";
   let honeypot = "";
   let token = "";
@@ -29,6 +30,7 @@ export async function onRequestPost({ request, env }) {
       const body = await request.json();
       name = body.name;
       email = body.email;
+      phone = body.phone;
       business = body.business;
       honeypot = body.website;
       token = body.token;
@@ -36,6 +38,7 @@ export async function onRequestPost({ request, env }) {
       const form = await request.formData();
       name = form.get("name");
       email = form.get("email");
+      phone = form.get("phone");
       business = form.get("business");
       honeypot = form.get("website");
       token = form.get("cf-turnstile-response");
@@ -46,6 +49,7 @@ export async function onRequestPost({ request, env }) {
 
   name = cleanText(name);
   email = String(email || "").trim().toLowerCase();
+  phone = cleanText(phone);
   business = cleanText(business);
 
   // Bots fill the hidden "website" field; pretend it worked
@@ -57,6 +61,12 @@ export async function onRequestPost({ request, env }) {
 
   if (!EMAIL_PATTERN.test(email) || email.length > 254) {
     return respond(wantsJson, 400, "Please enter a valid email address.");
+  }
+
+  // Count digits only, so any format works: (613) 555-0123, +1 613 555 0123, 555-0123 x12
+  const phoneDigits = phone.replace(/\D/g, "").length;
+  if (phoneDigits < 7 || phoneDigits > 20 || phone.length > 30) {
+    return respond(wantsJson, 400, "Please enter a valid phone number.");
   }
 
   if (!business || business.length > MAX_TEXT_LENGTH) {
@@ -73,7 +83,7 @@ export async function onRequestPost({ request, env }) {
     return respond(wantsJson, 403, "Verification failed. Please try again.");
   }
 
-  const sent = await notifyTeam({ name, email, business }, env.RESEND_API_KEY);
+  const sent = await notifyTeam({ name, email, phone, business }, env.RESEND_API_KEY);
   if (!sent) return respond(wantsJson, 502, GENERIC_ERROR);
 
   return respond(wantsJson, 200, SUCCESS);
@@ -84,7 +94,7 @@ function cleanText(value) {
   return String(value || "").replace(/\s+/g, " ").trim();
 }
 
-async function notifyTeam({ name, email, business }, apiKey) {
+async function notifyTeam({ name, email, phone, business }, apiKey) {
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -97,7 +107,7 @@ async function notifyTeam({ name, email, business }, apiKey) {
         to: [NOTIFY_TO],
         reply_to: email,
         subject: `New contact form submission from ${name}`,
-        text: `You have a new contact form submission.\n\nName: ${name}\nEmail: ${email}\nBusiness: ${business}\n\nReply to this email to contact them directly.`,
+        text: `You have a new contact form submission.\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nBusiness: ${business}\n\nReply to this email to contact them directly.`,
       }),
     });
     if (!res.ok) {

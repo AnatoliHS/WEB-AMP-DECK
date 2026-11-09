@@ -152,7 +152,7 @@
   })();
 
   // Page transitions: play a card clip when navigating to key pages.
-  // Going to Home plays card-fan; other pages load normally.
+  // Going to Home plays card-fan once per session; other pages load normally.
   (function initPageTransitions() {
     const overlay = document.querySelector('.page-transition');
     if (!overlay) return;
@@ -190,8 +190,11 @@
       '/': 'fan'
     };
     const normalise = path => (path.replace(/index\.html$/, '').replace(/\/?$/, '/'));
+    const fanPlayed = () => {
+      try { return !!sessionStorage.getItem('amp-fan-played'); } catch (err) { return false; }
+    };
 
-    // Home page intro (desktop, direct load or reload): play card-fan, then reveal the page
+    // Home page intro (desktop, first load of the session): play card-fan, then reveal the page
     if (root.classList.contains('is-intro')) {
       const intro = clips.fan;
       let revealed = false;
@@ -219,8 +222,9 @@
       if (started && started.catch) started.catch(reveal);
     }
 
-    // Warm up both clips once the page has settled so they start instantly on click
+    // Warm up the clips once the page has settled so they start instantly on click
     window.addEventListener('load', () => {
+      if (fanPlayed()) return; // already played this session, so it won't be needed
       setTimeout(() => Object.values(clips).forEach(v => { v.preload = 'auto'; v.load(); }), 1200);
     });
 
@@ -235,10 +239,11 @@
       const to = normalise(url.pathname);
       if (to === from) return; // same page (including in-page anchors)
       const clip = clips[routes[to]];
-      if (!clip) return;
+      if (!clip || fanPlayed()) return;
 
       e.preventDefault();
       busy = true;
+      try { sessionStorage.setItem('amp-fan-played', '1'); } catch (err) {}
       const go = () => {
         try { sessionStorage.setItem('amp-transition', '1'); } catch (err) {}
         location.href = url.href;
