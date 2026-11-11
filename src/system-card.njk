@@ -1,0 +1,215 @@
+---
+# One page per Ink system card, opened from the QR code printed on the card.
+# Content lives in _data/deck.js. These pages are kept out of search for now:
+# noindex meta (head.njk), excluded from the sitemap, and an X-Robots-Tag header (headers.njk).
+pagination:
+  data: deck.systems
+  size: 1
+  alias: card
+permalink: "/{{ card.slug }}/"
+noindex: true
+eleventyExcludeFromCollections: true
+# Loads the neon sign font (Tilt Neon) in head.njk for these pages only
+neonSign: true
+eleventyComputed:
+  title: "{{ card.name }} | The AMP Deck"
+  description: "{{ card.what }}"
+---
+{%- set stage = card.stageInfo -%}
+
+<article class="sc" data-card="{{ card.ref }}">
+
+  <!-- Hero: card name, hook and the card itself. The card carries a neon sign that scrolls to the content -->
+  <header class="sc-hero">
+    <div class="container-narrow sc-hero-grid">
+      <div class="sc-hero-copy">
+        <span class="eyebrow">System card · {{ card.ref | replace("-", "·") }}</span>
+        <h1 class="sc-title">{{ card.name }}</h1>
+        <p class="sc-hook">{{ card.hook }}</p>
+        <p class="sc-builds">
+          <span class="sc-builds-label">Builds at</span>
+          <span class="sc-builds-stage">Stage {{ stage.number }} · {{ stage.name }}</span>
+        </p>
+      </div>
+
+      <div class="sc-card">
+        <span class="sc-card-corner" aria-hidden="true">{{ card.ref }}</span>
+        <span class="sc-card-tag" aria-hidden="true">System · {{ stage.name }}</span>
+        <span class="sc-card-name" aria-hidden="true">{{ card.name }}</span>
+        <!-- Neon sign: the frame and arrow are one tube; the word is the card's one action -->
+        <button type="button" class="sc-sign" data-scroll-to="sc-start" aria-label="{{ card.sign | lower | capitalize }}: read how below">
+          <span class="sc-sign-inner sc-sign-power" aria-hidden="true">
+            <svg viewBox="0 0 200 124" focusable="false">
+              <path class="sc-sign-tube" d="M 22,5 H 178 Q 195,5 195,22 V 63 Q 195,80 178,80 H 115 Q 110,80 110,85 V 91 Q 110,96 115,96 H 120 Q 128,96 121.9,101.2 L 104.6,116.1 Q 100,120 95.4,116.1 L 78.1,101.2 Q 72,96 80,96 H 85 Q 90,96 90,91 V 85 Q 90,80 85,80 H 22 Q 5,80 5,63 V 22 Q 5,5 22,5 Z"/>
+            </svg>
+            <span class="sc-sign-word" style="--sign-size: {{ card.signSize }}cqw">{{ card.signPre }}<span class="sc-sign-flicker">{{ card.signFlicker }}</span>{{ card.signPost }}</span>
+          </span>
+        </button>
+        <img class="sc-card-logo" src="/images/amp-logo.png" alt="" width="34" height="34">
+      </div>
+    </div>
+  </header>
+
+  <!-- Body: full-width colour bands ("chapters"), one per section -->
+  <div class="sc-band sc-band--cream" id="sc-start">
+    <div class="container-narrow">
+
+      <section class="sc-block" aria-labelledby="sc-what">
+        <h2 class="sc-label" id="sc-what"><span class="sc-label-num">01</span> What it is</h2>
+        <p class="sc-what">{{ card.what }}</p>
+      </section>
+
+    </div>
+  </div>
+
+  <div class="sc-band sc-band--black">
+    <div class="container-narrow">
+
+      <section class="sc-block" aria-labelledby="sc-do">
+        <h2 class="sc-label" id="sc-do"><span class="sc-label-num">02</span> What to do</h2>
+        <p class="sc-hint">Do these in order. Tick each one off as you go.</p>
+        <ol class="sc-steps">
+          {%- for step in card.steps %}
+          <li class="sc-step">
+            <label class="sc-step-label">
+              <input class="sc-step-check" type="checkbox" data-step="{{ loop.index }}">
+              <span class="sc-step-num" aria-hidden="true">{{ loop.index }}</span>
+              <span class="sc-step-text">{{ step }}</span>
+            </label>
+          </li>
+          {%- endfor %}
+        </ol>
+        <p class="sc-progress" data-progress aria-live="polite"></p>
+      </section>
+
+    </div>
+  </div>
+
+  <div class="sc-band sc-band--stripe">
+    <div class="container-narrow">
+
+      <section class="sc-block" aria-labelledby="sc-working">
+        <h2 class="sc-label" id="sc-working"><span class="sc-label-num">03</span> How you’ll know it’s working</h2>
+        <p class="sc-working">{{ card.working }}</p>
+      </section>
+
+    </div>
+  </div>
+
+  <div class="sc-band sc-band--cream">
+    <div class="container-narrow">
+
+      {%- if card.threatCards.length %}
+      <section class="sc-block" aria-labelledby="sc-fixes">
+        <h2 class="sc-label" id="sc-fixes"><span class="sc-label-num">04</span> The problems it fixes</h2>
+        <p class="sc-hint">Pull this card when one of these threat cards is on your table.</p>
+        <ul class="sc-threats">
+          {%- for t in card.threatCards %}
+          <!-- Same face as the FAQ question cards on the home page -->
+          <li class="sc-threat">
+            <span class="faq-card-inner">
+              <span class="faq-card-face faq-card-front">
+                <span class="faq-card-corner">{{ t.ref }}</span>
+                <img class="faq-card-logo" src="/images/amp-logo.png" alt="" aria-hidden="true">
+                <span class="faq-card-tag">Threat card</span>
+                <span class="faq-card-question">{{ t.name }}</span>
+                <span class="sc-threat-hook">{{ t.hook }}</span>
+                <span class="faq-card-stage"><span>{{ t.stageInfo.name }}</span></span>
+              </span>
+            </span>
+          </li>
+          {%- endfor %}
+        </ul>
+      </section>
+      {%- else %}
+      <section class="sc-block" aria-labelledby="sc-when">
+        <h2 class="sc-label" id="sc-when"><span class="sc-label-num">04</span> When to use it</h2>
+        <p class="sc-hint">No threat card names this system. Here is when to pull it.</p>
+        <p class="sc-when">{{ card.pull }}</p>
+        {%- if card.pairCards.length %}
+        <p class="sc-pairs">
+          {%- for p in card.pairCards %}
+          <a class="sc-pair" href="/{{ p.slug }}/">Works with: {{ p.name }} <span aria-hidden="true">→</span></a>
+          {%- endfor %}
+        </p>
+        {%- endif %}
+      </section>
+      {%- endif %}
+
+      <!-- Where it sits in the client journey -->
+      <section class="sc-block" aria-labelledby="sc-journey">
+        <h2 class="sc-label" id="sc-journey"><span class="sc-label-num">05</span> Where it fits</h2>
+        <p class="sc-hint">Every business moves clients through six stages. This system makes stage {{ stage.number }} stronger.</p>
+        <ol class="sc-journey">
+          {%- for s in deck.stages %}
+          <li class="sc-stage{% if s.key == stage.key %} is-current{% endif %}"{% if s.key == stage.key %} aria-current="step"{% endif %}>
+            <span class="sc-stage-num">{{ s.number }}</span>
+            <span class="sc-stage-name">{{ s.name }}</span>
+            <span class="sc-stage-line">{{ s.line }}</span>
+          </li>
+          {%- endfor %}
+        </ol>
+      </section>
+
+      <!-- Browse the other system cards -->
+      <nav class="sc-pager" aria-label="Other system cards">
+        {%- if card.prev %}
+        <a class="sc-pager-link sc-pager-prev" href="/{{ card.prev.slug }}/">
+          <span class="sc-pager-dir">← Previous card</span>
+          <span class="sc-pager-name">{{ card.prev.name }}</span>
+        </a>
+        {%- else %}<span></span>{%- endif %}
+        {%- if card.next %}
+        <a class="sc-pager-link sc-pager-next" href="/{{ card.next.slug }}/">
+          <span class="sc-pager-dir">Next card →</span>
+          <span class="sc-pager-name">{{ card.next.name }}</span>
+        </a>
+        {%- endif %}
+      </nav>
+
+    </div>
+  </div>
+</article>
+
+<script>
+  // Neon sign on the card: scroll down to the first section.
+  (function () {
+    var sign = document.querySelector('.sc-sign');
+    if (!sign) return;
+    sign.addEventListener('click', function () {
+      var target = document.getElementById(sign.getAttribute('data-scroll-to'));
+      if (!target) return;
+      var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      target.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' });
+    });
+  })();
+
+  // Step checklist: remembered on this device only, so the owner can come back to it.
+  (function () {
+    var root = document.querySelector('.sc');
+    if (!root) return;
+    var key = 'amp-steps-' + root.getAttribute('data-card');
+    var boxes = Array.prototype.slice.call(root.querySelectorAll('.sc-step-check'));
+    var progress = root.querySelector('[data-progress]');
+    var saved = [];
+    try { saved = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) {}
+
+    function render() {
+      var done = boxes.filter(function (b) { return b.checked; }).length;
+      progress.textContent = done === boxes.length
+        ? 'All ' + boxes.length + ' steps done. This system is in your business.'
+        : done ? done + ' of ' + boxes.length + ' steps done' : '';
+      progress.classList.toggle('is-complete', done === boxes.length);
+    }
+
+    boxes.forEach(function (b) {
+      b.checked = saved.indexOf(b.getAttribute('data-step')) !== -1;
+      b.addEventListener('change', function () {
+        var ticked = boxes.filter(function (x) { return x.checked; }).map(function (x) { return x.getAttribute('data-step'); });
+        try { localStorage.setItem(key, JSON.stringify(ticked)); } catch (e) {}
+        render();
+      });
+    });
+    render();
+  })();
+</script>

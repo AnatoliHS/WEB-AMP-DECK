@@ -1,0 +1,15 @@
+---
+# Cloudflare Pages response headers (https://developers.cloudflare.com/pages/configuration/headers/).
+# Keeps the QR card pages out of search results. Remove a card's lines here (and `noindex`
+# in system-card.njk) when the pages should be indexed. Do not block them in robots.txt:
+# Google must be able to crawl a page to see that it is noindex.
+permalink: "/_headers"
+layout: false
+eleventyExcludeFromCollections: true
+---
+{%- for card in deck.systems %}
+/{{ card.slug }}
+  X-Robots-Tag: noindex
+/{{ card.slug }}/
+  X-Robots-Tag: noindex
+{%- endfor %}

@@ -137,3 +137,6 @@ _site
 # Cloudflare local secrets (wrangler pages dev)
 .dev.vars
 .wrangler/
+
+# Card source documents (paid field guide PDF, QR sheet): never publish or commit
+card-source/
